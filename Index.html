@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.8.0/p5.min.js"></script>
+<title>BAB</title>
+    <style>
+    body {
+      background-color: #333;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    
+    .category-bar {
+      cursor: pointer;
+      padding: 10px;
+      background-color: #555;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .block {
+      cursor: pointer;
+      background-color: #444;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .sprite-bar {
+      display: flex;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    .sprite {
+      width: 60px;
+      height: 60px;
+      background-color: #777;
+      color: #fff;
+      text-align: center;
+      line-height: 60px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #runCodeBlock {
+      background-color: #777;
+      color: #fff;
+    }
+
+    #runCodeInput {
+      margin-left: 10px;
+      padding: 5px;
+    }
+      #settingsButton {
+        cursor: pointer;
+        padding: 10px;
+        background-color: #555;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      #settingsMenu {
+        display: none;
+        position: absolute;
+        top: 50px;
+        right: 10px;
+        background-color: #555;
+        padding: 10px;
+        border-radius: 5px;
+      }
+
+      #settingsMenu label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      #controlCategory {
+        cursor: pointer;
+        padding: 10px;
+        background-color: #555;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .foreverBlock {
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: #fff;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        position: relative;
+        width: 100px;
+      }
+
+      .foreverShape {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        top: 50%;
+        left: 10%;
+        transform: translate(0%, -50%);
+      }
+
+      .foreverText {
+        position: absolute;
+        top: 50%;
+        left: 40%;
+        transform: translate(0%, -50%);
+      }
+      /* Dark Mode Button Gradient */
+      .dark-mode .category-bar,
+      .dark-mode .block,
+      .dark-mode #settingsButton {
+        background: linear-gradient(to bottom, #555, #444);
+        color: #fff;
+      }
+
+      /* Light Mode Button Gradient */
+      .light-mode .category-bar,
+      .light-mode .block,
+      .light-mode #settingsButton {
+        background: linear-gradient(to bottom, #ddd, #ccc);
+        color: #000;
+      }
+
+
+
+
+
+
+    </style>
+
+  </head>
+
+  <body onload="brython()">
+    <div id="settingsButton" onclick="toggleSettingsMenu()">⚙️</div>
+    <div id="settingsMenu">
+      <label for="darkMode">Dark Mode</label>
+      <input type="checkbox" id="darkMode" onchange="toggleDarkMode()">
+      <br>
+      <label for="lightMode">Light Mode</label>
+      <input type="checkbox" id="lightMode" onchange="toggleLightMode()">
+    </div>
+    <div id="motionCategory" class="category-bar" onclick="toggleBlocks('motion')">Motion</div>
+    <div class="blocks-container" id="motionBlocks">
+      <div class="block" onclick="addBlock('move', '10', 'sprite')">Move <input type="number" id="moveInput" value="10"></div>
+      <div class="block" onclick="addBlock('randomMove', '', 'sprite')">Random Move</div>
+    </div>
+
+    <div id="penCategory" class="category-bar" onclick="toggleBlocks('pen')" style="">Pen</div>
+    <div class="blocks-container" id="penBlocks">
+      <div class="block" onclick="addBlock('penUp', '', 'sprite')">Pen Up</div>
+      <div class="block" onclick="addBlock('penDown', '', 'sprite')">Pen Down</div>
+      <div class="block" onclick="addBlock('setColor', '', 'pen')">Set Pen Color <input type="text" id="setColorInput" placeholder="Color"></div>
+    </div>
+
+    <div id="looksCategory" class="category-bar" onclick="toggleBlocks('looks')" style="">Looks</div>
+    <div class="blocks-container" id="looksBlocks">
+      <div class="block" onclick="addBlock('setText', 'Hello', 'sprite')">Set Text to <input placeholder="text" id="text"></input></div>
+      <div class="block" onclick="addBlock('changeColor', '', 'sprite')">Change Color <input type="text" id="changeColorInput" placeholder="Color"></div>
+    </div>
+
+    <div id="backgroundCategory" class="category-bar" onclick="toggleBlocks('background')" style="">Background</div>
+    <div class="blocks-container" id="backgroundBlocks">
+      <div class="block" onclick="addBlock('setBackground', '', 'background')">Set Background <input type="text" id="setBackgroundInput" placeholder="Color"></div>
+    </div>
+
+    <div id="scriptsTab" class="category-bar" onclick="toggleBlocks('scripts')" style="">Scripts</div>
+    <div class="blocks-container" id="scriptsBlocks"></div>
+
+    <div id="variablesCategory" class="category-bar" onclick="toggleBlocks('variables')" style="">Variables</div>
+    <div class="blocks-container" id="variablesBlocks">
+      <div class="block" onclick="addBlock('setVariable', 'myVar', 'variable')">Set Variable @myVar to <input type="text" id="setVarInput" value=""></div>
+      <div id="runCodeBlock" class="block" onclick="addBlock('javascript', 'Run JavaScript Code', 'sprite')">
+        Run JavaScript Code
+        <input type="text" id="runCodeInput" placeholder="Enter JavaScript code">
+      </div>
+      <div class="block" onclick="addBlock('runCode', 'RunCode', 'sprite')">
+        Run Code
+        <input type="text" id="runPyCodeInput" placeholder="Enter Python code">
+      </div>
+
+    </div>
+
+  <div id="mathCategory" class="category-bar" onclick="toggleBlocks('math')" style="">Math</div>
+    <div class="blocks-container" id="mathBlocks">
+      <div class="block" onclick="addBlock('add', '5', 'sprite')">Add 5 to <input type="text" id="addInput" value="@myVar"></div>
+    </div>
+    <div id="controlCategory" class="category-bar" onclick="toggleBlocks('control')">Control</div>
+    <div class="blocks-container" id="controlBlocks">
+      <div class="block" onclick="addForeverBlock()">Forever</div>
+    </div><div class="sprite-bar" id="spriteBar"></div>
+    <div id="newSprite" onclick="newSprite('ASprite')">
+      Create a Sprite!
+    </div>
+    <input placeholder="direction" id="direction"></input>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.0/brython.js">
+    </script>
+    <!-- Add this element where you want to display the JavaScript code -->
+    <div id="displayCode"></div>
+
+    <script>
+      function toggleSettingsMenu() {
+        const settingsMenu = document.getElementById('settingsMenu');
+        settingsMenu.style.display = settingsMenu.style.display === 'none' ? 'block' : 'none';
+      }
+      function toggleDarkMode() {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+
+        // Set the background color explicitly for dark mode
+        document.body.style.backgroundColor = '#111';
+        document.body.style.color = '#fff';
+      }
+
+
+      function toggleLightMode() {
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+
+        // Set the background color explicitly for light mode
+        document.body.style.backgroundColor = '#fff';
+        document.body.style.color = '#000';
+      }
+
+
+
+
+
+    let x, y;
+    let offsetX, offsetY;
+    let scriptBlocks = [];
+    let sprites = [];
+    let currentSpriteIndex = 0;
+    let sprite;
+    let stage;
+    let penIsDown = false;
+    let penColor = 'black';
+    let myVar = 0;
+    let num; // Default direction
+
+
+    // Modified Block class with specifications
+    Block = function(id, type, spec, target) {
+      this.id = id;
+      this.type = type;
+      this.spec = spec;
+      this.target = target;
+      this.execute = function() {
+        if (this.type === 'direction' && this.target === 'sprite') {
+          let element = document.getElementById('dirInput')
+          num = element.innerText;
+        } else if (this.type === 'runCode' && this.target === 'sprite') {
+          runPythonCode()
+        } else if (this.type === 'javascript' && this.target === 'sprite') {
+          runJavaScriptCode()
+        } else if (this.type === 'move' && this.target === 'sprite') {
+          
+            // Get the number of steps from the user input
+            const steps = parseFloat(document.getElementById('moveInput').value) || 0;
+
+            // Calculate the new X and Y coordinates based on the direction
+            const vx = cos(num) * steps;
+            const vy = sin(num) * steps;
+
+            // Update the sprite's position
+            sprites[currentSpriteIndex].x = constrain(sprites[currentSpriteIndex].x + vx, 10, stage.width - sprite.width + 10);
+            sprites[currentSpriteIndex].y = constrain(sprites[currentSpriteIndex].y + vy, 10, stage.height - sprite.height + 10);
+          
+        } else if (this.type === 'randomMove' && this.target === 'sprite') {
+          sprites[currentSpriteIndex].x = constrain(sprites[currentSpriteIndex].x + random(-5, 5), 10, stage.width - sprite.width + 10);
+          sprites[currentSpriteIndex].y = constrain(sprites[currentSpriteIndex].y + random(-5, 5), 10, stage.height - sprite.height + 10);
+        } else if (this.type === 'setText' && this.target === 'sprite') {
+          fill('white');
+          let i = document.getElementById('text')
+          text(i.innerText, sprites[currentSpriteIndex].x + 5, sprites[currentSpriteIndex].y + 15);
+        } else if (this.type === 'changeColor' && this.target === 'sprite') {
+          const colorValue = document.getElementById('changeColorInput').value;
+          fill(colorValue || 'white');
+        } else if (this.type === 'setBackground' && this.target === 'background') {
+          const colorValue = document.getElementById('setBackgroundInput').value;
+          stage.background(colorValue || 'white');
+        } else if (this.type === 'penUp' && this.target === 'sprite') {
+          penIsDown = false;
+        } else if (this.type === 'penDown' && this.target === 'sprite') {
+          penIsDown = true;
+        } else if (this.type === 'setColor' && this.target === 'pen') {
+          const colorValue = document.getElementById('setColorInput').value;
+          penColor = colorValue || 'black';
+        } else if (this.type === 'setVariable' && this.target === 'variable') {
+          myVar = parseFloat(this.spec);
+        } else if (this.type === 'parseJSON' && this.target === 'json') {
+          const parsedData = JSON.parse(this.spec);
+          console.log(parsedData);
+        } else if (this.type === 'add' && this.target === 'sprite') {
+          const inputValue = document.getElementById('addInput').value;
+          myVar += parseFloat(inputValue);
+        }
+      };
+    };
+      function runJavaScriptCode() {
+        // Get the element with the ID "runCodeInput"
+        const codeInput = document.getElementById('runCodeInput');
+
+        // Get the JavaScript code from the input
+        const codeToRun = codeInput.value;
+
+        // Display the code on the screen
+        const displayCodeElement = document.getElementById('displayCode');
+        displayCodeElement.textContent = 'Code to be run: ' + codeToRun;
+
+        // Now you can execute the JavaScript code
+        if (codeToRun) {
+          try {
+            eval(codeToRun);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }
+
+
+
+    function preload() {
+      sprite = loadImage("turtle.png");
+    }
+
+    function setup() {
+      createCanvas(600, 400); // Adjusted canvas size
+      x = width / 2;
+      y = height / 2;
+      offsetX = 0;
+      offsetY = 0;
+
+      // Resize sprite to fit the stage
+      sprite.resize(50, 50);
+
+      // Create Green Flag button
+      greenFlagButton = createButton("Green flag");
+      greenFlagButton.position(10, height + 10);
+      greenFlagButton.mousePressed(greenFlagPressed);
+
+      // Create Stop button
+      stopButton = createButton("Stop");
+      stopButton.position(100, height + 10);
+      stopButton.mousePressed(stopPressed);
+      const directionInput = document.getElementById('direction');
+      directionInput.addEventListener('input', updateSpriteDirection);
+      // Initialize stage
+      stage = createGraphics(180, 120); // Adjusted stage size
+stage.background("gray")
+
+      // Create initial sprite
+      createSprite('Sprite 1', 50, 50);
+
+      // Display the sprites in the sprite bar
+      displaySprites();
+    }
+
+    function draw() {
+      background(220);
+      // Draw the stage
+      image(stage, 10, 10);
+
+      // Draw sprites
+      for (const currentSprite of sprites) {
+        // Draw the rotated sprite on the stage
+        angleMode(DEGREES);
+        push();
+        translate(currentSprite.x + currentSprite.width / 2, currentSprite.y + currentSprite.height / 2);
+        rotate(num);
+        image(currentSprite.image, -currentSprite.width / 2, -currentSprite.height / 2);
+        pop();
+      }
+
+
+      // Draw pen if down
+      if (penIsDown) {
+        stage.stroke(penColor);
+        stage.strokeWeight(5);
+        stage.line(sprite.x, sprite.y, sprites[currentSpriteIndex].x, sprites[currentSpriteIndex].y);
+      }
+    }
+
+    function mousePressed() {
+      for (let i = 0; i < sprites.length; i++) {
+        const currentSprite = sprites[i];
+        if (
+          mouseX > currentSprite.x &&
+          mouseX < currentSprite.x + currentSprite.width &&
+          mouseY > currentSprite.y &&
+          mouseY < currentSprite.y + currentSprite.height
+        ) {
+          offsetX = currentSprite.x - mouseX;
+          offsetY = currentSprite.y - mouseY;
+          currentSpriteIndex = i;
+        }
+      }
+    }
+
+    function mouseDragged() {
+      sprites[currentSpriteIndex].x = constrain(mouseX + offsetX, 10, stage.width - sprite.width + 10);
+      sprites[currentSpriteIndex].y = constrain(mouseY + offsetY, 10, stage.height - sprite.height + 10);
+    }
+
+
+
+    function greenFlagPressed() {
+      // Code to execute when the Green Flag is pressed
+      for (const scriptBlock of scriptBlocks) {
+        scriptBlock.execute();
+      }
+    }
+
+    function stopPressed() {
+
+    }
+      function toggleBlocks(category) {
+        const categoryBlocks = document.getElementById(category + 'Blocks');
+        const otherCategories = document.querySelectorAll('.blocks-container:not(#' + category + 'Blocks)');
+
+        for (const otherCategory of otherCategories) {
+          otherCategory.style.display = 'none';
+        }
+
+        categoryBlocks.style.display = categoryBlocks.style.display === 'none' ? 'block' : 'none';
+      }
+
+
+    function addBlock(type, spec, target) {
+      const container = document.getElementById('scriptsBlocks');
+      const blockDiv = document.createElement('div');
+      const blockId = 'block_' + scriptBlocks.length;
+      blockDiv.id = blockId;
+      blockDiv.classList.add('block');
+      blockDiv.innerText = type + '(' + (spec ? "'" + spec + "'" : '') + ')';
+      blockDiv.onclick = function() {
+        deleteBlock(blockId);
+      };
+      container.appendChild(blockDiv);
+      scriptBlocks.push(new Block(blockId, type, spec, target));
+      if (type === 'direction') {
+        // If the block type is 'direction', update the sprite's direction
+        const directionInput = document.getElementById('dirInput');
+        num = radians(parseFloat(directionInput.value));
+      }
+    }
+
+    function deleteBlock(blockId) {
+      const blockIndex = scriptBlocks.findIndex((block) => block.id === blockId);
+      if (blockIndex !== -1) {
+        scriptBlocks.splice(blockIndex, 1);
+        document.getElementById(blockId).remove();
+      }
+    }
+
+    function createSprite(name, x, y) {
+      const newSprite = {
+        name: name,
+        x: x,
+        y: y,
+        width: 50,
+        height: 50,
+        direction: 0,
+        image: sprite
+      };
+      sprites.push(newSprite);
+      currentSpriteIndex = sprites.length - 1;
+    }
+
+    function displaySprites() {
+      const spriteBar = document.getElementById('spriteBar');
+      spriteBar.innerHTML = '';
+      for (let i = 0; i < sprites.length; i++) {
+        const currentSprite = sprites[i];
+       const spriteDiv = document.createElement('div');
+        spriteDiv.classList.add('sprite');
+        spriteDiv.innerText = currentSprite.name;
+        spriteDiv.onclick = function() {
+          currentSpriteIndex = i;
+
+        };
+        spriteBar.appendChild(spriteDiv);
+
+
+      }
+    }
+      function newSprite(name) {
+      prompt1 = prompt('What do you want to name your new sprite?')
+
+        let Sprite = createSprite(prompt1, Math.random(), Math.random())
+        displaySprites()
+    
+      }
+      function runPythonCode() {
+        // Get the element with the ID "runPyCodeInput"
+        var elementA = document.getElementById('runPyCodeInput');
+
+        // Create a script element
+        var scriptElement = document.createElement('script');
+
+        // Set the type attribute to 'text/python'
+        scriptElement.type = 'text/python';
+
+        // Set the Python code as the script content by getting innerText from elementA
+        scriptElement.textContent = elementA.innerText;
+
+        // Append the script element to the document's body
+        document.body.appendChild(scriptElement);
+
+      }
+
+      function addForeverBlock() {
+        const container = document.getElementById('scriptsBlocks');
+        const blockDiv = document.createElement('div');
+        const blockId = 'block_' + scriptBlocks.length;
+        blockDiv.id = blockId;
+        blockDiv.classList.add('block');
+        blockDiv.classList.add('foreverBlock'); // Add forever block style
+        blockDiv.innerText = 'Forever';
+        blockDiv.onclick = function () {
+          deleteBlock(blockId);
+        };
+        container.appendChild(blockDiv);
+        scriptBlocks.push(new Block(blockId, 'forever', '', 'control'));
+      }
+
+      // Make scripts blocks draggable
+      interact('.block').draggable({
+        onmove: dragMoveListener
+      });
+
+      function dragMoveListener(event) {
+        const target = event.target;
+        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+        target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+        target.setAttribute('data-x', x);
+        target.setAttribute('data-y', y);
+      }
+      function addForeverBlock() {
+        // Add Forever block
+        addBlock('forever', '', 'control');
+
+        // Add End block
+        addBlock('end', '', 'control');
+      }
+      function updateSpriteDirection() {
+        // Get the value from the direction text box
+        const directionValue = document.getElementById('direction').value;
+
+        // Update the sprite's direction
+        num = parseFloat(directionValue) || 0;
+      }
+      function moveSpriteForward() {
+        // Get the number of steps from the user input
+        const steps = parseFloat(document.getElementById('moveInput').value) || 0;
+
+        // Calculate the new X and Y coordinates based on the direction
+        const vx = cos(num) * steps;
+        const vy = sin(num) * steps;
+
+        // Update the sprite's position
+        sprites[currentSpriteIndex].x = constrain(sprites[currentSpriteIndex].x + vx, 10, stage.width - sprite.width + 10);
+        sprites[currentSpriteIndex].y = constrain(sprites[currentSpriteIndex].y + vy, 10, stage.height - sprite.height + 10);
+      }
+    </script>
+  </body>
+
+</html>
